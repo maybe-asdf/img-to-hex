@@ -5,13 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Image to Hex</title>
     <style>
-        body {
-            font-family: sans-serif;
-        }
+      body { font-family: sans-serif; }
     </style>
 </head>
 <body>
     <h1>Image to HEX</h1>
+    <label>Optional Width: <input type="number" id="widthInput" placeholder="Optional (Max 480)" /></label>
+    <label>Optional Height: <input type="number" id="heightInput" placeholder="Optional (Max 360)" /></label>
     <input type="file" id="fileInput">
     <p id="output"></p>
 
@@ -24,16 +24,41 @@
 
         reader.onload = function(e) {
             const img = new Image();
-            img.crossOrigin = "Anonymous";
-
             img.onload = function() {
+                let width = parseInt(document.getElementById('widthInput').value);
+                let height = parseInt(document.getElementById('heightInput').value);
+
+                // Calculate the aspect ratio
+                const aspectRatio = img.width / img.height;
+
+                // If no width or height is provided, calculate it while keeping aspect ratio
+                if (isNaN(width) && isNaN(height)) {
+                    width = Math.min(img.width, 480);
+                    height = Math.round(width / aspectRatio);
+                    if (height > 360) {
+                        height = 360;
+                        width = Math.round(height * aspectRatio);
+                    }
+                } else if (isNaN(width)) {
+                    width = Math.round(height * aspectRatio);
+                    width = Math.min(width, 480);
+                } else if (isNaN(height)) {
+                    height = Math.round(width / aspectRatio);
+                    height = Math.min(height, 360);
+                } else {
+                    // Ensure it doesn't exceed max dimensions
+                    width = Math.min(width, 480);
+                    height = Math.min(height, 360);
+                }
+
+                // Create a canvas and draw the image with the new resolution
                 const canvas = document.createElement('canvas');
-                canvas.width = 64;
-                canvas.height = 64;
+                canvas.width = width;
+                canvas.height = height;
                 const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
-                ctx.drawImage(img, 0, 0, 64, 64);
-                const imageData = ctx.getImageData(0, 0, 64, 64).data;
+                ctx.drawImage(img, 0, 0, width, height);
+                const imageData = ctx.getImageData(0, 0, width, height).data;
                 
                 let hexColors = [];
                 for (let i = 0; i < imageData.length; i += 4) {
@@ -43,8 +68,8 @@
                     hexColors.push(`#${((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1)}`);
                 }
 
-                console.log(hexColors.join("^")); 
-                document.getElementById('output').textContent = hexColors.join("^");
+                // Display height, width, and hex codes
+                document.getElementById('output').textContent = `${height}^${width}^` + hexColors.join("^");
             };
 
             img.src = e.target.result;
