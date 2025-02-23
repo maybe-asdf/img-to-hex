@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image to Hex</title>
+    <style>
+        body {
+            font-family: sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <h1>Image to HEX</h1>
+    <input type="file" id="fileInput">
+    <p id="output"></p>
+
+    <script>
+    document.getElementById('fileInput').addEventListener('change', function(event) {
+        if (!event.target.files.length) return;
+
+        const file = event.target.files[0];
+        const reader = new FileReader();
+
+        reader.onload = function(e) {
+            const img = new Image();
+            img.crossOrigin = "Anonymous";
+
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                canvas.width = 64;
+                canvas.height = 64;
+                const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+                ctx.drawImage(img, 0, 0, 64, 64);
+                const imageData = ctx.getImageData(0, 0, 64, 64).data;
+                
+                let hexColors = [];
+                for (let i = 0; i < imageData.length; i += 4) {
+                    let r = imageData[i];
+                    let g = imageData[i + 1];
+                    let b = imageData[i + 2];
+                    hexColors.push(`#${((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1)}`);
+                }
+
+                console.log(hexColors.join("^")); 
+                document.getElementById('output').textContent = hexColors.join("^");
+            };
+
+            img.src = e.target.result;
+        };
+
+        reader.readAsDataURL(file);
+    });
+    </script>
+</body>
+</html>
