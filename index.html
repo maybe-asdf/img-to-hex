@@ -45,21 +45,21 @@
                 const aspectRatio = img.width / img.height;
 
                 if (isNaN(width) && isNaN(height)) {
-                    width = Math.min(img.width, 480);
+                    width = Math.min(img.width, 960);
                     height = Math.round(width / aspectRatio);
-                    if (height > 360) {
-                        height = 360;
+                    if (height > 720) {
+                        height = 720;
                         width = Math.round(height * aspectRatio);
                     }
                 } else if (isNaN(width)) {
                     width = Math.round(height * aspectRatio);
-                    width = Math.min(width, 480);
+                    width = Math.min(width, 960);
                 } else if (isNaN(height)) {
                     height = Math.round(width / aspectRatio);
-                    height = Math.min(height, 360);
+                    height = Math.min(height, 720);
                 } else {
-                    width = Math.min(width, 480);
-                    height = Math.min(height, 360);
+                    width = Math.min(width, 960);
+                    height = Math.min(height, 720);
                 }
 
                 const canvas = document.createElement('canvas');
@@ -87,21 +87,21 @@
                 const aspectRatio = video.videoWidth / video.videoHeight;
 
                 if (isNaN(width) && isNaN(height)) {
-                    width = Math.min(video.videoWidth, 480);
+                    width = Math.min(video.videoWidth, 960);
                     height = Math.round(width / aspectRatio);
-                    if (height > 360) {
-                        height = 360;
+                    if (height > 720) {
+                        height = 720;
                         width = Math.round(height * aspectRatio);
                     }
                 } else if (isNaN(width)) {
                     width = Math.round(height * aspectRatio);
-                    width = Math.min(width, 480);
+                    width = Math.min(width, 960);
                 } else if (isNaN(height)) {
                     height = Math.round(width / aspectRatio);
-                    height = Math.min(height, 360);
+                    height = Math.min(height, 720);
                 } else {
-                    width = Math.min(width, 480);
-                    height = Math.min(height, 360);
+                    width = Math.min(width, 960);
+                    height = Math.min(height, 720);
                 }
 
                 // Create a canvas for extracting frames
