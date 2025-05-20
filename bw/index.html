@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Image/Video to Binary</title>
+  <style>
+    body { font-family: sans-serif; }
+  </style>
+</head>
+<body>
+  <h1>Image/Video to BINARY</h1>
+  <label>Width: <input type="number" id="widthInput" placeholder="Optional (Max 480)" /></label>
+  <label>Height: <input type="number" id="heightInput" placeholder="Optional (Max 360)" /></label>
+  <input type="file" id="fileInput" accept="image/*, video/*">
+  <p id="output" style="word-wrap: break-word;"></p>
+
+  <script>
+    document.getElementById('fileInput').addEventListener('change', function (event) {
+      if (!event.target.files.length) return;
+
+      const file = event.target.files[0];
+      const reader = new FileReader();
+
+      reader.onload = function (e) {
+        const fileType = file.type;
+        const isVideo = fileType.startsWith('video');
+        const isImage = fileType.startsWith('image');
+
+        const img = new Image();
+        const video = document.createElement('video');
+        let widthInput = parseInt(document.getElementById('widthInput').value);
+        let heightInput = parseInt(document.getElementById('heightInput').value);
+        let finalWidth, finalHeight;
+
+        if (isImage) {
+          img.onload = () => {
+            const aspect = img.width / img.height;
+            if (isNaN(widthInput) && isNaN(heightInput)) {
+              finalWidth = Math.min(img.width, 480);
+              finalHeight = Math.round(finalWidth / aspect);
+              if (finalHeight > 360) {
+                finalHeight = 360;
+                finalWidth = Math.round(finalHeight * aspect);
+              }
+            } else if (isNaN(widthInput)) {
+              finalHeight = Math.min(heightInput, 360);
+              finalWidth = Math.round(finalHeight * aspect);
+            } else if (isNaN(heightInput)) {
+              finalWidth = Math.min(widthInput, 480);
+              finalHeight = Math.round(finalWidth / aspect);
+            } else {
+              finalWidth = Math.min(widthInput, 480);
+              finalHeight = Math.min(heightInput, 360);
+            }
+
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+            canvas.width = finalWidth;
+            canvas.height = finalHeight;
+
+            ctx.drawImage(img, 0, 0, finalWidth, finalHeight);
+            const data = ctx.getImageData(0, 0, finalWidth, finalHeight).data;
+            let binary = "";
+
+            for (let i = 0; i < data.length; i += 4) {
+              const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
+              binary += avg < 128 ? '1' : '0';
+            }
+
+            document.getElementById('output').textContent = `${finalHeight}^${finalWidth}^${binary}`;
+          };
+          img.src = e.target.result;
+        } else if (isVideo) {
+          video.preload = "auto";
+          video.crossOrigin = "anonymous";
+          video.src = e.target.result;
+          video.onloadedmetadata = () => {
+            const aspect = video.videoWidth / video.videoHeight;
+            if (isNaN(widthInput) && isNaN(heightInput)) {
+              finalWidth = Math.min(video.videoWidth, 480);
+              finalHeight = Math.round(finalWidth / aspect);
+              if (finalHeight > 360) {
+                finalHeight = 360;
+                finalWidth = Math.round(finalHeight * aspect);
+              }
+            } else if (isNaN(widthInput)) {
+              finalHeight = Math.min(heightInput, 360);
+              finalWidth = Math.round(finalHeight * aspect);
+            } else if (isNaN(heightInput)) {
+              finalWidth = Math.min(widthInput, 480);
+              finalHeight = Math.round(finalWidth / aspect);
+            } else {
+              finalWidth = Math.min(widthInput, 480);
+              finalHeight = Math.min(heightInput, 360);
+            }
+
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+            canvas.width = finalWidth;
+            canvas.height = finalHeight;
+
+            let binaryOutput = "";
+            let currentTime = 0;
+
+            const processFrame = () => {
+              if (currentTime >= video.duration) {
+                document.getElementById('output').textContent = `${finalHeight}^${finalWidth}^${binaryOutput}`;
+                return;
+              }
+
+              video.currentTime = currentTime;
+            };
+
+            video.onseeked = () => {
+              ctx.drawImage(video, 0, 0, finalWidth, finalHeight);
+              const data = ctx.getImageData(0, 0, finalWidth, finalHeight).data;
+              for (let i = 0; i < data.length; i += 4) {
+                const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
+                binaryOutput += avg < 128 ? '1' : '0';
+              }
+              currentTime += 1;
+              processFrame();
+            };
+
+            processFrame();
+          };
+        }
+      };
+
+      reader.readAsDataURL(file);
+    });
+  </script>
+</body>
+</html>
